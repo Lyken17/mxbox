@@ -15,6 +15,15 @@ import os.path as osp
 import matplotlib.pyplot as plt
 
 
+IMG_EXTENSIONS = [
+    '.jpg', '.JPG', '.jpeg', '.JPEG',
+    '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
+]
+
+def is_image_file(filename):
+    return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
+
+
 class SampleLoader(mx.io.DataIter):
     """
         In mxnet, 5 functions below is necessary for implementing a DataLoader
@@ -71,6 +80,8 @@ class DataLoader(mx.io.DataIter):
         """
             set all required variables ready, see implementation below for more details 
         """
+        super(DataLoader, self).__init__()
+
         # shape related variables
         self.data_shape = (32, 3, 128, 12)
         self.label_shape = (32, 1)
@@ -85,16 +96,20 @@ class DataLoader(mx.io.DataIter):
 
         # multi thread acceleration
         self.read_threads = 1
+
+        # transformation
+        self.transform = None
+
         raise NotImplementedError('you must override __init__() you self')
 
     def next(self):
         """
         :return:
             mx.io.DataBatch(data = [data], label = [label]) 
-                detailed explaination later        
+                detailed explanation later        
         :raises:
             StopIteration: 
-                if data loader reachs epoch end
+                if data loader reaches epoch end
         """
         if self.current + self.batch_size > self.total:
             raise StopIteration  # reach epoch end
@@ -104,10 +119,11 @@ class DataLoader(mx.io.DataIter):
         raise NotImplementedError('you must override next() you self')
 
     def load_batch(self):
+        # make it static, unreachable from outside
         index_list = range(self.current, self.current + self.batch_size)
 
         if self.read_threads > 1:
-            p = Pool(self.read_threads) # TODO: add pin memory to optimize speed
+            p = Pool(self.read_threads)  # TODO: add pin memory to optimize speed
             batch = p.map(self.get_single_pair, index_list)
         else:
             batch = []
@@ -151,6 +167,7 @@ class DataLoader(mx.io.DataIter):
         self.current = 0
         if self.random_shuffle:
             random.shuffle(self.loader_list)
+
 
 
 class ImageFolder(mx.io.DataIter):
