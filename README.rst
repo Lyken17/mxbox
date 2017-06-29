@@ -13,8 +13,13 @@ Documentation
 =============
 Under construction, coming soon.
 
+
+A sentence with links to Wikipedia_ and the `Linux kernel archive`_.
+
 .. _Wikipedia: http://www.wikipedia.org/
 .. _Linux kernel archive: http://www.kernel.org/
+
+
 
 Another sentence with an `anonymous link to the Python website`__ .
 
