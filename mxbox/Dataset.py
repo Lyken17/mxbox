@@ -72,9 +72,9 @@ import transformer
 import DataLoader
 from collections import namedtuple
 
-if __name__ == "__main__":
+if __name__ == "_____main__":
     preprocess = transformer.Compose([
-        transformer.Scale(512),
+        transformer.Scale((512, 512)),
         transformer.RandomHorizontalFlip(),
         transformer.RandomCrop(256),
         transformer.PILToNumpy(),
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     }
 
     dst = TestDataset(root='../../data', transform=preprocess)
-
+    loader = DataLoader.DataLoader(dst, feedin_shape=feedin_shapes, read_threads=8)
     for _ in range(10):
         print(dst[0][0].shape)
+
