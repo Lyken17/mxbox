@@ -134,7 +134,8 @@ class ToPILImage(object):
 
 class PILToNumpy(object):
     def __call__(self, pic):
-        if not isinstance(pic, PIL.Image):
+
+        if not isinstance(pic, PIL.Image.Image):
             raise TypeError('Only support PIL image, type %s is invalid' % type(pic))
             # handle PIL Image
 
@@ -144,7 +145,7 @@ class PILToNumpy(object):
             img = np.array(pic, np.int16, copy=False)
         else:
             # img = pic.tobytes()
-            raise NotImplementedError('Byte Image is not supported yet')
+            img = np.array(pic)
 
         # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
         if pic.mode == 'YCbCr':

@@ -1,4 +1,3 @@
-import mxnet as mx
 import logging
 import multiprocessing as mp
 import numpy as np
@@ -6,6 +5,10 @@ import Queue
 import atexit
 import random
 from multiprocessing import Pool
+from PIL import Image
+
+import mxnet as mx
+
 
 class ImageFolder(mx.io.DataIter):
     '''
@@ -75,37 +78,37 @@ class DataLoader(mx.io.DataIter):
         In mxnet, 5 functions below is necessary for implementing a DataLoader
     """
 
-    def __init__(self, dataset=None, read_threads=1):
+    def __init__(self, dataset, feedin_shape, read_threads=1, ):
         """
             set all required variables ready, see implementation below for more details 
         """
         super(DataLoader, self).__init__()
 
-        if dataset is None:
-            raise Exception(r'''Variable 'dataset' cannot be None''')
-
         self.dataset = dataset
+
+        ##################################################################################################
         # shape related variables
         self.data_shapes = self.dataset.data_shapes
         self.label_shapes = self.dataset.label_shapes
         self.batch_size = self.dataset.batch_size
-        # self.image_size = self.data_shape[1:]
 
-        # list related variables
-        self.root = None
+        self.data_nums = len(self.provide_data)
+        self.label_nums = len(self.provide_label)
 
-        self.loader_list = []  # TODO: add a function interface
+        self.data_batch = ([None] * self.batch_size) * self.data_nums
+        self.label_batch = ([None] * self.batch_size) * self.data_nums
+        ##################################################################################################
+        # loader related variables
         self.current = 0
-        self.total = len(self.loader_list)
+        self.total = len(self.dataset)
         self.random_shuffle = False
 
+
+        ##################################################################################################
         # multi thread acceleration
-        self.read_threads = 1
-
-        # transformation
-        self.transform = None
-
-        # raise NotImplementedError('you must override __init__() you self')
+        self.read_threads = read_threads
+        if self.read_threads > 1:
+            self.pool = Pool(self.read_threads)  # TODO: add pin memory to optimize speed
 
     def next(self):
         """
@@ -121,31 +124,42 @@ class DataLoader(mx.io.DataIter):
         else:
             return self.get_batch()
 
-            # TODO: remove this comment when construction finishes
-            # raise NotImplementedError('you must override next() you self')
-
-    def make_batch(self):
-        return
-
-    def get_batch(self):
+    def load_batch(self):
         # make it static, unreachable from outside
         index_list = range(self.current, self.current + self.batch_size)
 
         if self.read_threads > 1:
-            p = Pool(self.read_threads)  # TODO: add pin memory to optimize speed
-            batch = p.map(self.__getitem__, index_list)
+            batch = self.pool.map(self.__getitem__, index_list)
         else:
             batch = []
             for ind in index_list:
                 batch.append(self.__getitem__(ind))
-
-        # TODO: make batch here
-
         return batch
 
-    def get_single_pair(self, index):
-        # TODO: will be removed. Replace it by __getitem__
-        return self.__getitem__(index)
+    def get_batch(self):
+        batch = self.load_batch()
+
+        #  [((data1, ..., dataN), (label1, ..., labelN)),
+        #   ((data1, ..., dataN), (label1, ..., labelN)),
+        #    ....
+        #   ((data1, ..., dataN), (label1, ..., labelN))]
+
+
+        # TODO: make batch here
+        for ind in range(self.data_nums):
+            self.data_batch[ind] = [batch[i][0][ind] for i in range(self.batch_size)]
+        for ind in range(self.label_nums):
+            self.label_batch[ind] = [batch[i][1][ind] for i in range(self.batch_size)]
+
+
+        for ind in range(self.data_nums):
+            self.data_batch[ind] = np.concatenate(self.data_batch[ind], axis=0)
+            self.data_batch[ind] = mx.nd.array(self.data_batch[ind])
+        for ind in range(self.label_nums):
+            # self.label_nums[ind] = np.concatenate(self.label_nums[ind], axis=0)
+            self.label_batch[ind] = mx.nd.array(self.label_batch[ind])
+
+        return mx.io.DataBatch(data=self.data_batch, label=self.label_batch)
 
     def __getitem__(self, index):
         """
@@ -154,7 +168,6 @@ class DataLoader(mx.io.DataIter):
             tuple: (data, label) where data and label are collections 
         """
         return self.dataset[index]
-
 
     @staticmethod
     def pil_loader(path):
@@ -194,4 +207,3 @@ class DataLoader(mx.io.DataIter):
 
     def __len__(self):
         return len(self.loader_list)
-

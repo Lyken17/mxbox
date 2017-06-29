@@ -23,58 +23,6 @@ IMG_EXTENSIONS = [
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 
-class Sampler(object):
-    """Base class for all Samplers.
-
-    Every Sampler subclass has to provide an __iter__ method, providing a way
-    to iterate over indices of dataset elements, and a __len__ method that
-    returns the length of the returned iterators.
-    """
-
-    def __init__(self, data_source):
-        pass
-
-    def __iter__(self):
-        raise NotImplementedError
-
-    def __len__(self):
-        raise NotImplementedError
-
-
-class SequentialSampler(Sampler):
-    """Samples elements sequentially, always in the same order.
-
-    Arguments:
-        data_source (Dataset): dataset to sample from
-    """
-
-    def __init__(self, data_source):
-        self.data_source = data_source
-
-    def __iter__(self):
-        return iter(range(len(self.data_source)))
-
-    def __len__(self):
-        return len(self.data_source)
-
-
-class RandomSampler(Sampler):
-    """Samples elements randomly, without replacement.
-
-    Arguments:
-        data_source (Dataset): dataset to sample from
-    """
-
-    def __init__(self, data_source):
-        self.data_source = data_source
-
-    def __iter__(self):
-        return iter(np.random.permutation(len(self.data_source)).long())
-
-    def __len__(self):
-        return len(self.data_source)
-
-
 class Dataset(object):
     def __getitem__(self, index):
         raise NotImplementedError("__getitem__() shoud be overided")
@@ -111,7 +59,6 @@ class TestDataset(Dataset):
 
         if self.transform is not None:
             data = self.transform(data)
-
         if self.label_transform is not None:
             label = self.label_transform(label)
 
@@ -123,17 +70,25 @@ class TestDataset(Dataset):
 
 import transformer
 import DataLoader
+from collections import namedtuple
 
 if __name__ == "__main__":
     preprocess = transformer.Compose([
         transformer.Scale(512),
         transformer.RandomHorizontalFlip(),
         transformer.RandomCrop(256),
+        transformer.PILToNumpy(),
+        transformer.Lambda(lambd=lambda img: np.swapaxes(img, 0, 2)),
+        transformer.Lambda(lambd=lambda img: img.reshape(1, img.shape[0], img.shape[1],  img.shape[2]))  # 1xCxWxH)
     ])
 
-    loader = TestDataset(root='../../data', transform=preprocess)
+    feedin_shapes = {
+        'batch_size' : 32,
+        'data' : [mx.io.DataDesc(name='data', shape=(32, 3, 128, 128), layout='NCHW')],
+        'label': [mx.io.DataDesc(name='softmax_label', shape=(32, ), layout='N')]
+    }
+
+    dst = TestDataset(root='../../data', transform=preprocess)
 
     for _ in range(10):
-        print(loader[0][0].size)
-        plt.imshow(loader[0][0])
-        plt.show()
+        print(dst[0][0].shape)
