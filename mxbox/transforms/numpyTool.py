@@ -2,7 +2,6 @@ from __future__ import division
 
 import math
 import random
-
 from PIL import Image, ImageOps
 import PIL
 
@@ -11,13 +10,13 @@ try:
 except ImportError:
     accimage = None
 
-import numpy as np
+import numpyTool as np
 import numbers
 import types
 import collections
 
 
-class PILToNumpy(object):
+class ToNumpy(object):
     def __call__(self, pic):
 
         if not isinstance(pic, PIL.Image.Image):
@@ -54,7 +53,7 @@ class PILToNumpy(object):
         return img
 
 
-class NumpyNormalize(object):
+class Normalize(object):
     """Normalize an tensor image with mean and standard deviation.
 
     Given mean: (R, G, B) and std: (R, G, B),

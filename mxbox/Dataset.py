@@ -38,7 +38,7 @@ class Dataset(object):
                 return img.convert('RGB')
 
 class TestDataset(Dataset):
-    def __init__(self, root="../../data", transform=None, target_transform=None, batch_size=32):
+    def __init__(self, root="../../data", transform=None, label_transform=None, batch_size=32):
         super(TestDataset, self).__init__()
 
         self.root = root
@@ -48,7 +48,7 @@ class TestDataset(Dataset):
         self.label_shapes = [mx.io.DataDesc(name='softmax_label', shape=(32,), layout='N')]
 
         self.transform = transform
-        self.label_transform = target_transform
+        self.label_transform = label_transform
 
         with open(osp.join(root, 'caltech-256-60-train.lst'), 'r') as fp:
             self.flist = [line.strip().split() for line in fp.readlines()]
@@ -78,12 +78,24 @@ if __name__ == "__main__":
         transforms.Scale((512, 512)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(256),
-        transforms.PILToNumpy(),
+        transforms.np.ToNumpy(),
         transforms.Lambda(lambd=lambda img: np.swapaxes(img, 0, 2)), # switch to C W H
-        transforms.NumpyNormalize(mean=[127, 127, 127]),
+        transforms.np.Normalize(mean=[127, 127, 127]),
         transforms.Lambda(lambd=lambda img: img.reshape(1, img.shape[0], img.shape[1],  img.shape[2]))  # 1xCxWxH)
     ])
-    dst = TestDataset(root='../../data', transform=preprocess)
+
+    img_transform = transforms.Compose([
+        transforms.Scale((512, 512)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(256),
+        transforms.mx.ToNdArray()
+    ])
+
+    label_transform = transforms.Compose([
+        transforms.Lambda(lambd=lambda x: mx.nd.array([x]))
+    ])
+
+    dst = TestDataset(root='../../data', transform=img_transform, label_transform=label_transform)
 
     feedin_shapes = {
         'batch_size' : 8,
@@ -91,12 +103,10 @@ if __name__ == "__main__":
         'label': [mx.io.DataDesc(name='softmax_label', shape=(32, ), layout='N')]
     }
 
-    merge_data = transforms.Compose([
-        transforms.Lambda(lambd=lambda x: np.concatenate(x, axis=0)),
-        transforms.Lambda(lambd=lambda x: mx.nd.array(x))
-    ])
-
     loader = DataLoader.DataLoader(dst, feedin_shape=feedin_shapes, read_threads=1)
     for each in loader:
         print(each)
         sleep(1)
+    # for each in dst:
+    #     print each
+    #     sleep(1)

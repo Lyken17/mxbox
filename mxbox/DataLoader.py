@@ -142,20 +142,21 @@ class DataLoader(mx.io.DataIter):
         #    ....
         #   ((data1, ..., dataN), (label1, ..., labelN))]
 
-        temp = 1
         # TODO: make batch here
         for ind in range(self.data_nums):
             self.data_batch[ind] = [batch[i][0][ind] for i in range(self.batch_size)]
         for ind in range(self.label_nums):
             self.label_batch[ind] = [batch[i][1][ind] for i in range(self.batch_size)]
 
-        temp = 1
+
         for ind in range(self.data_nums):
-            self.data_batch[ind] = np.concatenate(self.data_batch[ind], axis=0)
-            self.data_batch[ind] = mx.nd.array(self.data_batch[ind])
+            # self.data_batch[ind] = np.concatenate(self.data_batch[ind], axis=0)
+            # self.data_batch[ind] = mx.nd.array(self.data_batch[ind])
+            self.data_batch[ind] = mx.nd.concatenate(self.data_batch[ind], axis=0)
         for ind in range(self.label_nums):
             # self.label_nums[ind] = np.concatenate(self.label_nums[ind], axis=0)
-            self.label_batch[ind] = mx.nd.array(self.label_batch[ind])
+            # self.label_batch[ind] = mx.nd.array(self.label_batch[ind])
+            self.label_batch[ind] = mx.nd.concatenate(self.label_batch[ind], axis=0)
 
         return mx.io.DataBatch(data=self.data_batch, label=self.label_batch)
 

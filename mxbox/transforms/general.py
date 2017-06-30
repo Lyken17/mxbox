@@ -11,7 +11,7 @@ try:
 except ImportError:
     accimage = None
 
-import numpy as np
+import numpyTool as np
 import numbers
 import types
 import collections

@@ -1,7 +1,7 @@
 from __future__ import division
 
 try:
-    import torch
+    import torchTool
 except ImportError:
     print('pytorch not installed, related components are not available')
 import math
@@ -14,7 +14,7 @@ try:
     import accimage
 except ImportError:
     accimage = None
-import numpy as np
+import numpyTool as np
 import numbers
 import types
 import collections
@@ -38,9 +38,9 @@ class ToPILImage(object):
         """
         npimg = pic
         mode = None
-        if isinstance(pic, torch.FloatTensor):
+        if isinstance(pic, torchTool.FloatTensor):
             pic = pic.mul(255).byte()
-        if torch.is_tensor(pic):
+        if torchTool.is_tensor(pic):
             npimg = np.transpose(pic.numpy(), (1, 2, 0))
         assert isinstance(npimg, np.ndarray), 'pic should be Tensor or ndarray'
         if npimg.shape[2] == 1:
@@ -61,7 +61,7 @@ class ToPILImage(object):
         return Image.fromarray(npimg, mode=mode)
 
 
-class Normalize(object):
+class TorchNormalize(object):
     """Normalize an tensor image with mean and standard deviation.
 
     Given mean: (R, G, B) and std: (R, G, B),
@@ -109,22 +109,22 @@ class ToTensor(object):
         """
         if isinstance(pic, np.ndarray):
             # handle numpy array
-            img = torch.from_numpy(pic.transpose((2, 0, 1)))
+            img = torchTool.from_numpy(pic.transpose((2, 0, 1)))
             # backward compatibility
             return img.float().div(255)
 
         if accimage is not None and isinstance(pic, accimage.Image):
             nppic = np.zeros([pic.channels, pic.height, pic.width], dtype=np.float32)
             pic.copyto(nppic)
-            return torch.from_numpy(nppic)
+            return torchTool.from_numpy(nppic)
 
         # handle PIL Image
         if pic.mode == 'I':
-            img = torch.from_numpy(np.array(pic, np.int32, copy=False))
+            img = torchTool.from_numpy(np.array(pic, np.int32, copy=False))
         elif pic.mode == 'I;16':
-            img = torch.from_numpy(np.array(pic, np.int16, copy=False))
+            img = torchTool.from_numpy(np.array(pic, np.int16, copy=False))
         else:
-            img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
+            img = torchTool.ByteTensor(torchTool.ByteStorage.from_buffer(pic.tobytes()))
         # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
         if pic.mode == 'YCbCr':
             nchannel = 3
@@ -136,7 +136,7 @@ class ToTensor(object):
         # put it from HWC to CHW format
         # yikes, this transpose takes 80% of the loading time/CPU
         img = img.transpose(0, 1).transpose(0, 2).contiguous()
-        if isinstance(img, torch.ByteTensor):
+        if isinstance(img, torchTool.ByteTensor):
             return img.float().div(255)
         else:
             return img

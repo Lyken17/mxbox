@@ -61,9 +61,43 @@ class ToNdArray(object):
         else:
             nchannel = len(pic.mode)
 
-        img = img.reshape(pic.size[1], pic.size[0], nchannel)
+        # now `img` is mx.nd.array
+        img = img.reshape((pic.size[1], pic.size[0], nchannel))
         # put it from HWC to CHW format
         # yikes, this transpose takes 80% of the loading time/CPU
         img = mx.nd.transpose(img, axes=(2, 0, 1))
-
+        img = mx.nd.expand_dims(img, axis=0)
         return img.astype(dtype=float)
+
+
+class Normalize(object):
+    """Normalize an tensor image with mean and standard deviation.
+
+    Given mean: (R, G, B) and std: (R, G, B),
+    will normalize each channel of the torch.*Tensor, i.e.
+    channel = (channel - mean) / std
+
+    Args:
+        mean (sequence): Sequence of means for R, G, B channels respecitvely.
+        std (sequence): Sequence of standard deviations for R, G, B channels
+            respecitvely.
+    """
+
+    def __init__(self, mean, std=[1, 1, 1]):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+
+        Returns:
+            Tensor: Normalized image.
+        """
+        # TODO: make efficient
+        # for t, m, s in zip(tensor, self.mean, self.std):
+        #     t.sub_(m).div_(s)
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.__isub__(m).__idiv__(s)
+        return tensor
