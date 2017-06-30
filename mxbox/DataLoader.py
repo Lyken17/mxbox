@@ -4,26 +4,20 @@ import numpy as np
 import Queue
 import atexit
 import random
+import sys
+
 from multiprocessing import Pool
 from PIL import Image
-
 import mxnet as mx
 
 
-class ImageFolder(mx.io.DataIter):
-    '''
-    To read  
-
-    Example:
-        root/dog/xx01.jpg
-        root/dog/xx02.jpg
-
-        root/cat/xx01.jpg
-        root/cat/xx02.jpg
-    '''
-
-    def __init__(self):
-        pass
+import multiprocessing as multiprocessing
+if sys.version_info[0] == 2:
+    import Queue as queue
+    string_classes = basestring
+else:
+    import queue
+    string_classes = (str, bytes)
 
 
 class SampleLoader(mx.io.DataIter):
@@ -72,7 +66,6 @@ class SampleLoader(mx.io.DataIter):
         """
         raise NotImplementedError('you must override reset() yourself')
 
-
 class DataLoader(mx.io.DataIter):
     """
         In mxnet, 5 functions below is necessary for implementing a DataLoader
@@ -88,15 +81,19 @@ class DataLoader(mx.io.DataIter):
 
         ##################################################################################################
         # shape related variables
-        self.data_shapes = self.dataset.data_shapes
-        self.label_shapes = self.dataset.label_shapes
-        self.batch_size = self.dataset.batch_size
+        # self.data_shapes = self.dataset.data_shapes
+        # self.label_shapes = self.dataset.label_shapes
+        # self.batch_size = self.dataset.batch_size
+
+        self.data_shapes = feedin_shape['data']
+        self.label_shapes = feedin_shape['label']
+        self.batch_size = feedin_shape['batch_size']
 
         self.data_nums = len(self.provide_data)
         self.label_nums = len(self.provide_label)
 
-        self.data_batch = ([None] * self.batch_size) * self.data_nums
-        self.label_batch = ([None] * self.batch_size) * self.data_nums
+        self.data_batch = [[None] * self.batch_size] * self.data_nums
+        self.label_batch = [[None] * self.batch_size] * self.data_nums
         ##################################################################################################
         # loader related variables
         self.current = 0
@@ -129,7 +126,8 @@ class DataLoader(mx.io.DataIter):
         index_list = range(self.current, self.current + self.batch_size)
 
         if self.read_threads > 1:
-            batch = self.pool.map(self.__getitem__, index_list)
+            raise NotImplementedError
+            # batch = self.pool.map(self.__getitem__, index_list)
         else:
             batch = []
             for ind in index_list:
@@ -144,14 +142,14 @@ class DataLoader(mx.io.DataIter):
         #    ....
         #   ((data1, ..., dataN), (label1, ..., labelN))]
 
-
+        temp = 1
         # TODO: make batch here
         for ind in range(self.data_nums):
             self.data_batch[ind] = [batch[i][0][ind] for i in range(self.batch_size)]
         for ind in range(self.label_nums):
             self.label_batch[ind] = [batch[i][1][ind] for i in range(self.batch_size)]
 
-
+        temp = 1
         for ind in range(self.data_nums):
             self.data_batch[ind] = np.concatenate(self.data_batch[ind], axis=0)
             self.data_batch[ind] = mx.nd.array(self.data_batch[ind])
@@ -206,4 +204,6 @@ class DataLoader(mx.io.DataIter):
         #     random.shuffle(self.loader_list)
 
     def __len__(self):
-        return len(self.loader_list)
+        return len(self.dataset)
+
+

@@ -62,34 +62,41 @@ class TestDataset(Dataset):
         if self.label_transform is not None:
             label = self.label_transform(label)
 
-        return data, label
+        return [data], [label]
 
     def __len__(self):
         return len(self.flist)
 
 
-import transformer
+import transforms
 import DataLoader
 from collections import namedtuple
+from time import sleep
 
-if __name__ == "_____main__":
-    preprocess = transformer.Compose([
-        transformer.Scale((512, 512)),
-        transformer.RandomHorizontalFlip(),
-        transformer.RandomCrop(256),
-        transformer.PILToNumpy(),
-        transformer.Lambda(lambd=lambda img: np.swapaxes(img, 0, 2)),
-        transformer.Lambda(lambd=lambda img: img.reshape(1, img.shape[0], img.shape[1],  img.shape[2]))  # 1xCxWxH)
+if __name__ == "__main__":
+    preprocess = transforms.Compose([
+        transforms.Scale((512, 512)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(256),
+        transforms.PILToNumpy(),
+        transforms.Lambda(lambd=lambda img: np.swapaxes(img, 0, 2)), # switch to C W H
+        transforms.NumpyNormalize(mean=[127, 127, 127]),
+        transforms.Lambda(lambd=lambda img: img.reshape(1, img.shape[0], img.shape[1],  img.shape[2]))  # 1xCxWxH)
     ])
+    dst = TestDataset(root='../../data', transform=preprocess)
 
     feedin_shapes = {
-        'batch_size' : 32,
+        'batch_size' : 8,
         'data' : [mx.io.DataDesc(name='data', shape=(32, 3, 128, 128), layout='NCHW')],
         'label': [mx.io.DataDesc(name='softmax_label', shape=(32, ), layout='N')]
     }
 
-    dst = TestDataset(root='../../data', transform=preprocess)
-    loader = DataLoader.DataLoader(dst, feedin_shape=feedin_shapes, read_threads=8)
-    for _ in range(10):
-        print(dst[0][0].shape)
+    merge_data = transforms.Compose([
+        transforms.Lambda(lambd=lambda x: np.concatenate(x, axis=0)),
+        transforms.Lambda(lambd=lambda x: mx.nd.array(x))
+    ])
 
+    loader = DataLoader.DataLoader(dst, feedin_shape=feedin_shapes, read_threads=1)
+    for each in loader:
+        print(each)
+        sleep(1)
