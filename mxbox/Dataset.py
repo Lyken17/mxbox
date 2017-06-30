@@ -23,6 +23,7 @@ IMG_EXTENSIONS = [
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 
+
 class Dataset(object):
     def __getitem__(self, index):
         raise NotImplementedError("__getitem__() shoud be overided")

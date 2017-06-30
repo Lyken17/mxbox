@@ -66,7 +66,8 @@ class ToNdArray(object):
         # put it from HWC to CHW format
         # yikes, this transpose takes 80% of the loading time/CPU
         img = mx.nd.transpose(img, axes=(2, 0, 1))
-        img = mx.nd.expand_dims(img, axis=0)
+        # img = mx.nd.expand_dims(img, axis=0)
+
         return img.astype(dtype=float)
 
 
