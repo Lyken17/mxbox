@@ -30,34 +30,9 @@ PS: By default, mxbox use PIL to read and transform images. But it also supports
 
 More examples can be found in XXX.
 
-2) Build **DataLoader** in twenty lines
+2) Build **DataLoader** in several lines
 
 .. code:: python
-
-    class TestDataset(Dataset):
-        def __init__(self, root="../../data", transform=None, label_transform=None):
-            super(TestDataset, self).__init__()
-            self.root = root
-
-            self.transform = transform
-            self.label_transform = label_transform
-
-            with open(osp.join(root, 'caltech-256-60-train.lst'), 'r') as fp:
-                self.flist = [line.strip().split() for line in fp.readlines()]
-
-        def __getitem__(self, index):
-            label, id, path, = self.flist[index]
-            data = self.pil_loader(osp.join(self.root, '256_ObjectCategories', path))
-
-            if self.transform is not None:
-                data = self.transform(data)
-            if self.label_transform is not None:
-                label = self.label_transform(label)
-
-            return [data], [label]
-
-        def __len__(self):
-            return len(self.flist)
 
     feedin_shapes = {
         'batch_size': 8,
@@ -70,12 +45,16 @@ More examples can be found in XXX.
 
 3) Load popular model and pretrained weights
 
-Coming soon
+.. code:: python
+
+    vgg = mxbox.models.vgg(num_classes = 10, pretrained = True)
+    resnet = mxbox.models.resnet50(num_classes = 10, pretrained = True)
 
 
 Documentation
 =============
 Under construction, coming soon.
+
 
 TODO list
 =========
