@@ -1,6 +1,7 @@
-# import torch
+import torch
 # import torch.multiprocessing as multiprocessing
 import multiprocessing
+# import multiprocessing
 from sampler import SequentialSampler, RandomSampler, BatchSampler
 import collections
 import sys
@@ -32,7 +33,7 @@ def _worker_loop(dataset, index_queue, data_queue, collate_fn):
     global _use_shared_memory
     _use_shared_memory = True
 
-    torch.set_num_threads(1)
+    # torch.set_num_threads(1)
     while True:
         r = index_queue.get()
         if r is None:
@@ -107,8 +108,8 @@ class DataLoaderIter(object):
         self.sample_iter = iter(self.batch_sampler)
 
         if self.num_workers > 0:
-            self.index_queue = multiprocessing.SimpleQueue()
-            self.data_queue = multiprocessing.SimpleQueue()
+            self.index_queue = multiprocessing.Queue()
+            self.data_queue = multiprocessing.Queue()
             self.batches_outstanding = 0
             self.shutdown = False
             self.send_idx = 0
