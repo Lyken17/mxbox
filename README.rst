@@ -14,7 +14,7 @@ Installation
 
 Features
 ========
-1) Define **preprocess** in a flow
+1) Define **preprocess** as a flow
 
 .. code:: python
 
