@@ -238,19 +238,19 @@ def collate_fn(batch):
 from torchloader import DataLoader as torchloader
 from torchloader import DataLoaderIter as torchiter
 
-class AnotherLoader(mx.io.DataIter):
+class BoxLoader(mx.io.DataIter):
     """
         In mxnet, 5 functions below is necessary for implementing a DataLoader
     """
 
-    def __init__(self, dataset, feedin_shape, read_threads=1, shuffle=False, collate_fn=collate_fn):
+    def __init__(self, dataset, feedin_shape, num_workers=1, shuffle=False, collate_fn=collate_fn):
         """
             set all required variables ready, see implementation below for more details 
         """
-        super(AnotherLoader, self).__init__()
+        super(BoxLoader, self).__init__()
 
         self.dataset = dataset
-        self.read_threads = read_threads
+        self.read_threads = num_workers
         self.collate_fn = collate_fn
         ##################################################################################################
         # shape related variables
