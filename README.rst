@@ -1,4 +1,4 @@
-MXbox: The missing toolbox for mxnet.
+MXbox: Simple, efficient and flexible vision toolbox for mxnet framework.
 =====================================
 
 MXbox is a toolbox aiming to provide a general and simple interface for vision tasks. This project is greatly inspired by PyTorch_ and torchvision_. Detailed copyright files will be attached later. Improvements and suggestions are welcome.
