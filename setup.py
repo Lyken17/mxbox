@@ -22,7 +22,7 @@ setup(
     author='Lyken from TuSimple',
     author_email='lykensyu+github@gmail.com',
     url='https://github.com/lyken17/mxbox',
-    description='image and video datasets and models for mxnet deep learning',
+    description='Image and video datasets and models for mxnet deep learning',
     long_description=readme,
     license='BSD',
 
