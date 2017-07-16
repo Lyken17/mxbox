@@ -47,8 +47,8 @@ More examples can be found in XXX.
 
 .. code:: python
 
-    vgg = mxbox.models.vgg(num_classes = 10, pretrained = True)
-    resnet = mxbox.models.resnet50(num_classes = 10, pretrained = True)
+    vgg = mxbox.models.vgg(num_classes=10, pretrained=True)
+    resnet = mxbox.models.resnet50(num_classes=10, pretrained=True)
 
 
 Documentation

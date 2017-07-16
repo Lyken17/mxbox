@@ -5,7 +5,7 @@ Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet classificati
 """
 import mxnet as mx
 
-def get_symbol(num_classes, **kwargs):
+def get_symbol(num_classes=1000):
     input_data = mx.symbol.Variable(name="data")
     # stage 1
     conv1 = mx.symbol.Convolution(name='conv1',
@@ -51,8 +51,14 @@ def get_symbol(num_classes, **kwargs):
 
     return softmax
 
-def alexnet(num_classes, pretrained=False, **kwargs):
+def alexnet(pretrained=False, **kwargs):
+    """
+    Alexnet model architecture from <Arxiv Link>
+
+    Args:
+        pretrained(bool): If true, then returns a model pretrained on ImageNet
+    """
+    model = get_symbol(**kwargs)
     if pretrained:
-        raise NotImplementedError('Pretrained model not ready yet')
-    else:
-        return get_symbol(num_classes=num_classes, **kwargs)
+        raise Warning('Pretrained model not ready yet, fallback to scratch model')
+    return model

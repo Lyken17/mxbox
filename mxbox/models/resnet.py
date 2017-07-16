@@ -175,3 +175,9 @@ def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, **kwarg
                   image_shape=image_shape,
                   bottle_neck=bottle_neck,
                   workspace=conv_workspace)
+
+def resnet152(pretrained=False, **kwargs):
+    model = get_symbol(1000, 152, (3, 256, 256))
+    if pretrained:
+        raise Warning('Pretrained model not ready yet, fallback to scratch model')
+    return model

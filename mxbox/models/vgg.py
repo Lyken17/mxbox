@@ -61,7 +61,7 @@ def get_symbol(num_classes, **kwargs):
     return softmax
 
 def vgg(num_classes, pretrained=False, **kwargs):
+    model = get_symbol(num_classes=num_classes)
     if pretrained:
-        raise NotImplementedError('Pretrained model not ready yet')
-    else:
-        return get_symbol(num_classes=num_classes, **kwargs)
+        raise Warning('Pretrained model not ready yet, fallback to scratch model')
+    return model
