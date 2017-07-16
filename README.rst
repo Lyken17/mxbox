@@ -56,12 +56,11 @@ Documentation
 Under construction, coming soon.
 
 
-
 TODO list
 =========
 
 1) Random shuffle
 
-2) Efficient multi thread reading
+2) Efficient multi thread reading (Corountine wanted
 
 3) Common Models

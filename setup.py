@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 readme = open('README.rst').read()
 
-VERSION = '0.0.2'
+VERSION = '0.0.21'
 
 requirements = [
     'numpy',
