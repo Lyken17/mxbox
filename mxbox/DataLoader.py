@@ -81,7 +81,7 @@ class default_collate(object):
     def __init__(self, feedin_shape):
         self.feedin_shape = feedin_shape
 
-    def default_collate(self, batch):
+    def __call__(self, batch):
         data = {}
         label = {}
 
@@ -115,7 +115,6 @@ class DataLoader(mx.io.DataIter):
         for name in data:
             for entry in batch:
                 data[name].append(entry[name])
-            print (transforms.mx.stack(data[name], axis=0))
             data[name] = transforms.mx.stack(data[name], axis=0)
 
         for name in label:
@@ -123,15 +122,15 @@ class DataLoader(mx.io.DataIter):
                 label[name].append(entry[name])
             label[name] = transforms.mx.stack(label[name], axis=0)
 
-        return mx.io.DataBatch(data=data.values(), label=label.values())
+        return mx.io.DataBatch(data=data.values(), provide_data=self.provide_data, label=label.values())
 
-    def __init__(self, dataset, feedin_shape, collate_fn=None, threads=1, shuffle=False):
+    def __init__(self, dataset, feedin_shape, collate_fn=default_collate, threads=1, shuffle=False):
         super(DataLoader, self).__init__()
 
         self.dataset = dataset
         self.threads = threads
-        # self.collate_fn = collate_fn
-        self.collate_fn = self.default_collate_fn
+        self.collate_fn = collate_fn(feedin_shape)
+        # self.collate_fn = self.default_collate_fn
 
         # shape related variables
 
