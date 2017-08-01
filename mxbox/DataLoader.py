@@ -71,8 +71,148 @@ class SampleLoader(mx.io.DataIter):
         """
         raise NotImplementedError('you must override reset() yourself')
 
+def collate_fn(batch):
+    pass
+
+import transforms
+
+
+class default_collate(object):
+    def __init__(self, feedin_shape):
+        self.feedin_shape = feedin_shape
+
+    def default_collate(self, batch):
+        data = {}
+        label = {}
+
+        for dsc in self.feedin_shape['data']:
+            data[dsc.name] = []
+        for dsc in self.feedin_shape['label']:
+            label[dsc.name] = []
+
+        for name in data:
+            for entry in batch:
+                data[name].append(entry[name])
+            data[name] = transforms.mx.stack(data[name], axis=0)
+
+        for name in label:
+            for entry in batch:
+                label[name].append(entry[name])
+            label[name] = transforms.mx.stack(label[name], axis=0)
+
+        return mx.io.DataBatch(data.values(), label.values())
 
 class DataLoader(mx.io.DataIter):
+    def default_collate_fn(self, batch):
+        data = {}
+        label = {}
+
+        for dsc in self.provide_data:
+            data[dsc.name] = []
+        for dsc in self.provide_label:
+            label[dsc.name] = []
+
+        for name in data:
+            for entry in batch:
+                data[name].append(entry[name])
+            print (transforms.mx.stack(data[name], axis=0))
+            data[name] = transforms.mx.stack(data[name], axis=0)
+
+        for name in label:
+            for entry in batch:
+                label[name].append(entry[name])
+            label[name] = transforms.mx.stack(label[name], axis=0)
+
+        return mx.io.DataBatch(data=data.values(), label=label.values())
+
+    def __init__(self, dataset, feedin_shape, collate_fn=None, threads=1, shuffle=False):
+        super(DataLoader, self).__init__()
+
+        self.dataset = dataset
+        self.threads = threads
+        # self.collate_fn = collate_fn
+        self.collate_fn = self.default_collate_fn
+
+        # shape related variables
+
+        self.data_shapes = feedin_shape['data']
+        self.label_shapes = feedin_shape['label']
+        self.batch_size = feedin_shape['batch_size']
+
+        # loader related variables
+        self.current = 0
+        self.total = len(self.dataset)
+        self.shuflle = shuffle
+        self.map_index = list(range(self.total))
+
+        # prepare for loading
+        self.get_batch = self.get_batch_single_thread
+        if self.threads > 1:  # multi process read
+            from multiprocessing.dummy import Pool as ThreadPool
+            # self.pool = multiprocessing.Pool(self.threads)
+            self.pool = ThreadPool(self.threads)
+            self.get_batch = self.get_batch_multi_thread
+
+        self.reset()
+
+    def next(self):
+        if self.current + self.batch_size > self.total:
+            # reach end
+            self.reset()
+            raise StopIteration
+        else:
+            batch = self.get_batch()
+            return self.collate_fn(batch)
+
+    def get_single(self, index):
+        # to ease
+        idx = self.map_index[index]
+        return self.dataset[idx]
+
+    def get_batch_single_thread(self):
+        entry = [None] * self.batch_size
+        for idx in range(self.batch_size):
+            entry[idx] = self.get_single(self.current + idx)
+        self.current += self.batch_size
+        return entry
+
+    def get_batch_multi_thread(self):
+        idx = range(self.current, self.current + self.batch_size)
+        entry = self.pool.map(self.get_single, idx)
+        self.current += self.batch_size
+        return entry
+
+    @property
+    def provide_data(self):
+        """
+        :return:
+            [mx.io.DataDesc(), ... ]
+                A list of mx.io.DataDesc, which describes all data input blocks in network
+        """
+        return self.data_shapes
+        # raise NotImplementedError('you must override provide_data() ')
+
+    @property
+    def provide_label(self):
+        """
+        :return:
+            [mx.io.DataDesc(), ... ]
+                A list of mx.io.DataDesc, which describes all label input blocks in network
+        """
+        return self.label_shapes
+        # raise NotImplementedError('you must override provide_label() ')
+
+    def reset(self):
+        """
+        reset variables related to iterations, such as current_index, shuffle, etc
+        """
+        self.current = 0
+        if self.shuflle:
+            random.shuffle(self.map_index)
+        return
+
+
+class _DataLoader(mx.io.DataIter):
     """
         In mxnet, 5 functions below is necessary for implementing a DataLoader
     """
@@ -81,7 +221,7 @@ class DataLoader(mx.io.DataIter):
         """
             set all required variables ready, see implementation below for more details 
         """
-        super(DataLoader, self).__init__()
+        super(_DataLoader, self).__init__()
 
         self.dataset = dataset
 
@@ -111,14 +251,12 @@ class DataLoader(mx.io.DataIter):
         self.read_threads = read_threads
         if self.read_threads > 1:
             # self.pool = Pool(self.read_threads)  # TODO: add pin memory to optimize speed
-
             self.producer = Queue.Queue()
             self.consumer = Queue.Queue()
             for _ in range(self.read_threads):
                 t = threading.Thread(target=self.do_work, args=(self.producer, self.consumer))
                 t.daemon = True
                 t.start()
-
 
     def do_work(self, in_queue, out_queue):
         while True:
@@ -156,11 +294,12 @@ class DataLoader(mx.io.DataIter):
             self.producer.join()
             for i in xrange(self.read_threads):
                 batch.append(batch)
-            # raise NotImplementedError
-            # batch = self.pool.map(self.__getitem__, index_list)
+                # raise NotImplementedError
+                # batch = self.pool.map(self.__getitem__, index_list)
         return batch
 
     def get_batch(self):
+        # TODO: here is a wrong wrapping for collate
         batch = self.load_batch()
         #  [((data1, ..., dataN), (label1, ..., labelN)),
         #   ((data1, ..., dataN), (label1, ..., labelN)),
@@ -232,11 +371,14 @@ class DataLoader(mx.io.DataIter):
     def __len__(self):
         return len(self.dataset)
 
+
 def collate_fn(batch):
     return batch
 
+'''
 from torchloader import DataLoader as torchloader
 from torchloader import DataLoaderIter as torchiter
+
 
 class BoxLoader(mx.io.DataIter):
     """
@@ -293,9 +435,6 @@ class BoxLoader(mx.io.DataIter):
         """
         pass
 
-
-
-
     def __getitem__(self, index):
         """
         :param index(int): Index
@@ -342,3 +481,4 @@ class BoxLoader(mx.io.DataIter):
 
     def __len__(self):
         return len(self.dataset)
+'''

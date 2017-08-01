@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # clear cache
 rm -rf build/*
 rm -rf dist/*
@@ -7,3 +8,4 @@ python setup.py bdist_wheel
 
 # upload to PyPi
 twine upload dist/*
+

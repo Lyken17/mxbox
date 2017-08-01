@@ -17,6 +17,11 @@ import types
 import collections
 import mxnet as mx
 
+def stack(sequence, axis=0):
+    shape = sequence[0].shape
+    new_shape = shape[:axis] + (1,) + shape[axis:]
+    seq = [each.reshape(new_shape) for each in sequence]
+    return mx.nd.concatenate(seq)
 
 class ToNdArray(object):
     """Convert a ``PIL.Image`` or ``numpy.ndarray`` to mx.nd.array.
