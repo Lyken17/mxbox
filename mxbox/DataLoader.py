@@ -17,11 +17,9 @@ import multiprocessing as multiprocessing
 
 if sys.version_info[0] == 2:
     import Queue as queue
-
     string_classes = basestring
 else:
     import queue
-
     string_classes = (str, bytes)
 
 
@@ -161,7 +159,11 @@ class DataLoader(mx.io.DataIter):
             raise StopIteration
         else:
             batch = self.get_batch()
-            return self.collate_fn(batch)
+            try:
+                return self.collate_fn(batch)
+            except AttributeError:
+                print(batch)
+                exit(-1)
 
     def get_single(self, index):
         # to ease

@@ -17,11 +17,29 @@ import types
 import collections
 import mxnet as mx
 
+
+def unsequeeze(input, axis):
+    try:
+        shape = input.shape
+    except AttributeError:
+        # input is an integer
+        input = mx.nd.array([input])
+        shape = (1,)
+    new_shape = shape[:axis] + (1,) + shape[axis:]
+    return input.reshape(new_shape)
+
+
 def stack(sequence, axis=0):
+    if len(sequence) == 0:
+        raise ValueError("stack expects a non-empty sequence of tensors")
+    """
     shape = sequence[0].shape
     new_shape = shape[:axis] + (1,) + shape[axis:]
     seq = [each.reshape(new_shape) for each in sequence]
+    """
+    seq = [unsequeeze(each, axis) for each in sequence]
     return mx.nd.concatenate(seq)
+
 
 class ToNdArray(object):
     """Convert a ``PIL.Image`` or ``numpy.ndarray`` to mx.nd.array.
@@ -107,3 +125,9 @@ class Normalize(object):
         for t, m, s in zip(tensor, self.mean, self.std):
             t.__isub__(m).__idiv__(s)
         return tensor
+
+
+if __name__ == "__main__":
+    temp = np.zeros((1, ))
+    data = [mx.nd.array(temp) for _ in range(10)]
+    print(stack(data))

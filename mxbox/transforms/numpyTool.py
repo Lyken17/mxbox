@@ -10,7 +10,7 @@ try:
 except ImportError:
     accimage = None
 
-import numpyTool as np
+import numpy as np
 import numbers
 import types
 import collections

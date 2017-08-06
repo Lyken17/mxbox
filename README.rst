@@ -26,7 +26,7 @@ Features
                                 std  = [ 0.229, 0.224, 0.225 ]),
     ])
 
-PS: By default, mxbox use PIL to read and transform images. But it also supports other backends like skimage_and Numpy.
+PS: By default, mxbox uses `PIL` to read and transform images. But it also supports other backends like `skimage` and `numpy`.
 
 More examples can be found in XXX.
 
