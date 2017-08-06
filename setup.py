@@ -5,7 +5,7 @@ import sys
 from setuptools import setup, find_packages
 
 
-readme = open('README.rst').read()
+readme = open('README.md').read()
 
 VERSION = '0.0.21'
 
