@@ -21,12 +21,12 @@ import mxnet as mx
 def unsequeeze(input, axis):
     try:
         shape = input.shape
+        new_shape = shape[:axis] + (1,) + shape[axis:]
+        input = input.reshape(new_shape)
     except AttributeError:
-        # input is an integer
+        # input is an integer, special judge for label
         input = mx.nd.array([input])
-        shape = (1,)
-    new_shape = shape[:axis] + (1,) + shape[axis:]
-    return input.reshape(new_shape)
+    return input
 
 
 def stack(sequence, axis=0):
@@ -128,6 +128,6 @@ class Normalize(object):
 
 
 if __name__ == "__main__":
-    temp = np.zeros((1, ))
-    data = [mx.nd.array(temp) for _ in range(10)]
+    data = [_ for _ in range(10)]
+    # print(data)
     print(stack(data))
