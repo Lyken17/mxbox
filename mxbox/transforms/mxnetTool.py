@@ -23,6 +23,7 @@ def unsequeeze(input, axis):
         shape = input.shape
         new_shape = shape[:axis] + (1,) + shape[axis:]
         input = input.reshape(new_shape)
+        input = mx.nd.array(input)
     except AttributeError:
         # input is an integer, special judge for label
         input = mx.nd.array([input])
@@ -47,6 +48,8 @@ class ToNdArray(object):
     Converts a PIL.Image or numpy.ndarray (H x W x C) in the range
     [0, 255] to a to mx.nd.array of shape (C x H x W) in the range [0.0, 255.0].
     """
+    def __init__(self, dtype=np.float32):
+        self.dtype = dtype
 
     def __call__(self, pic):
         """
@@ -91,7 +94,7 @@ class ToNdArray(object):
         img = mx.nd.transpose(img, axes=(2, 0, 1))
         # img = mx.nd.expand_dims(img, axis=0)
 
-        return img.astype(dtype=float)
+        return img.astype(dtype=self.dtype)
 
 
 class Normalize(object):

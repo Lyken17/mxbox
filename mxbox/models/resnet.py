@@ -130,7 +130,7 @@ def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, **kwarg
     """
     image_shape = [int(l) for l in image_shape.split(',')]
     (nchannel, height, width) = image_shape
-    if height <= 28:
+    if height <= 32:
         num_stages = 3
         if (num_layers - 2) % 9 == 0 and num_layers >= 164:
             per_unit = [(num_layers - 2) // 9]
