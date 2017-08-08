@@ -65,7 +65,7 @@ class SampleDst(mxbox.Dataset):
     def __len__(self):
         return len(self.lst)
 
-dataset = SampleDst('~/.mxbox/cifar10', "train.lst", transform=trans)
+dataset = SampleDst('~/.mxbox/TooYoungScape', "train.lst", transform=trans)
 batch_size = 32
 feedin_shapes = {
     'batch_size': batch_size,
