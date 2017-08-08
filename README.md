@@ -23,22 +23,58 @@ transform = transforms.Compose([
 
 PS: By default, mxbox uses `PIL` to read and transform images. But it also supports other backends like `accimage` and `skimage`.
 
-More examples can be found in XXX.
+More usages can be found in [documents](mxbox/transforms/README.md) and [examples](Examples/).
 
-2) Build **DataLoader** in several lines
-    
+2) Build an multi-thread **DataLoader** in several lines
+
+Common datasets such as `cifar10`, `cifar100`, `SVHN`, `MNIST` are out-of-the-box. You can simply load them from `mxbox.datasets`.
+
 ```python
-feedin_shapes = {
-    'batch_size': 8,
-    'data': [mx.io.DataDesc(name='data', shape=(8, 3, 32, 32), layout='NCHW')],
-    'label': [mx.io.DataDesc(name='softmax_label', shape=(8, 1), layout='N')]
-}
+from mxbox import transforms, datasets, DataLoader
+trans = transforms.Compose([
+        transforms.mx.ToNdArray(), 
+        transforms.mx.Normalize(mean = [ 0.485, 0.456, 0.406 ],
+                                std  = [ 0.229, 0.224, 0.225 ]),
+])
+dataset = datasets.CIFAR10('~/.mxbox/cifar10', transform=trans, download=True)
 
-dst = Dataset(root='../../data', transform=img_transform, label_transform=label_transform)
-loader = DataLoader(dst, feedin_shapes, threads=8, shuffle=True)
+batch_size = 32
+feedin_shapes = {
+    'batch_size': batch_size,
+    'data': [mx.io.DataDesc(name='data', shape=(batch_size, 3, 32, 32), layout='NCHW')],
+    'label': [mx.io.DataDesc(name='softmax_label', shape=(batch_size, ), layout='N')]
+}
+loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
+```  
+
+Or you can create your own 
+```python
+class SampleDst(mxbox.Dataset):
+    def __init__(self, root, lst, transform=None):
+        self.root = root
+        with open(osp.join(root, lst), 'r') as fp:
+            self.lst = [line.strip().split('\t') for line in fp.readlines()]
+        self.transform = transform
+
+    def __getitem__(self, index):
+        img = self.pil_loader(osp.join(self.root, self.lst[index][0]))
+        if self.transform is not None:
+            img = self.transform(img)
+        return {'data': img, 'softmax_label': img}
+
+    def __len__(self):
+        return len(self.lst)
+
+dataset = SampleDst('~/.mxbox/cifar10', "train.lst", transform=trans)
+batch_size = 32
+feedin_shapes = {
+    'batch_size': batch_size,
+    'data': [mx.io.DataDesc(name='data', shape=(batch_size, 3, 32, 32), layout='NCHW')],
+    'label': [mx.io.DataDesc(name='softmax_label', shape=(batch_size, ), layout='N')]
+}
+loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
 ```
     
-Also, common datasets such as `cifar10`, `cifar100`, `SVHN`, `MNIST` are out-of-the-box. You can simply load them from `mxbox.datasets`.  
 
 3) Load popular model with pretrained weights
 
@@ -46,13 +82,6 @@ Also, common datasets such as `cifar10`, `cifar100`, `SVHN`, `MNIST` are out-of-
 vgg = mxbox.models.vgg(num_classes=10, pretrained=True)
 resnet = mxbox.models.resnet152(num_classes=10, pretrained=True)
 ```
-
-
-
-##  Documentation
-
-Under construction, coming soon.
-
 
 ## TODO list
 
