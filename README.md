@@ -25,7 +25,7 @@ PS: By default, mxbox uses `PIL` to read and transform images. But it also suppo
 
 More usages can be found in [documents](mxbox/transforms/README.md) and [examples](Examples/).
 
-2) Build an multi-thread **DataLoader** in several lines
+2) Build an multi-thread **DataLoader** in few lines
 
 Common datasets such as `cifar10`, `cifar100`, `SVHN`, `MNIST` are out-of-the-box. You can simply load them from `mxbox.datasets`.
 
