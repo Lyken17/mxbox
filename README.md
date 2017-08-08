@@ -47,9 +47,10 @@ feedin_shapes = {
 loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
 ```  
 
-Or you can create your own 
+Or you can easily create your own, which only requires to implement `__getitem__` and `__len__`.
+
 ```python
-class SampleDst(mxbox.Dataset):
+class TooYoungScape(mxbox.Dataset):
     def __init__(self, root, lst, transform=None):
         self.root = root
         with open(osp.join(root, lst), 'r') as fp:
@@ -64,19 +65,16 @@ class SampleDst(mxbox.Dataset):
 
     def __len__(self):
         return len(self.lst)
-
-dataset = SampleDst('~/.mxbox/TooYoungScape', "train.lst", transform=trans)
-batch_size = 32
-feedin_shapes = {
-    'batch_size': batch_size,
-    'data': [mx.io.DataDesc(name='data', shape=(batch_size, 3, 32, 32), layout='NCHW')],
-    'label': [mx.io.DataDesc(name='softmax_label', shape=(batch_size, ), layout='N')]
-}
+        
+dataset = TooYoungScape('~/.mxbox/TooYoungScape', "train.lst", transform=trans)
 loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
 ```
     
 
 3) Load popular model with pretrained weights
+
+Note: current under construction, many models pretrained and their corresponding definition files are missing.
+
 
 ```python
 vgg = mxbox.models.vgg(num_classes=10, pretrained=True)
