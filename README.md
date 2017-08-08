@@ -47,7 +47,7 @@ feedin_shapes = {
 loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
 ```  
 
-Or you can easily create your own, which only requires to implement `__getitem__` and `__len__`.
+Or you can also easily create your own, which only requires to implement `__getitem__` and `__len__`.
 
 ```python
 class TooYoungScape(mxbox.Dataset):
@@ -73,7 +73,7 @@ loader = DataLoader(dataset, feedin_shapes, threads=8, shuffle=True)
 
 3) Load popular model with pretrained weights
 
-Note: current under construction, many models pretrained and their corresponding definition files are missing.
+Note: current under construction, many models lack of pretrained weights and some of their definition files are missing.
 
 
 ```python

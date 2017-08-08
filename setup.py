@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 readme = open('README.md').read()
 
-VERSION = '0.0.22'
+VERSION = '0.0.23'
 
 requirements = [
     'numpy',
@@ -22,7 +22,7 @@ setup(
     author='Lyken from TuSimple',
     author_email='lykensyu+github@gmail.com',
     url='https://github.com/lyken17/mxbox',
-    description='Image and video datasets and models for mxnet deep learning',
+    description='Image, datasets and models for mxnet deep learning',
     long_description=readme,
     license='BSD',
 
