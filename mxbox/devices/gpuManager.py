@@ -12,7 +12,6 @@ try:
 except ModuleNotFoundError:
     from gpustat import GPUStatCollection
 
-
 class gpuManager():
     def __init__(self):
         self.update()
@@ -59,7 +58,8 @@ class gpuManager():
 
         if shuffle:
             random.shuffle(choices)
-            return choices[:n]
+
+        return choices[:n]
 
     @staticmethod
     def date_handler(obj):
