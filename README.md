@@ -86,7 +86,7 @@ resnet = mxbox.models.resnet152(num_classes=10, pretrained=True)
 
 0) FLAG options? 
 
-1) Efficient multi-thread reading (Prefetch wanted
+1) Efficient prefetch. 
 
 2) Common Models preparation.
 
