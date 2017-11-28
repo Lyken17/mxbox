@@ -4,7 +4,7 @@ MXbox is a toolbox aiming to provide a general and simple interface for vision t
 
 
 ## Installation
-MXBox is now available on PyPi. You can easily get MXBox from `pip`.
+MXBox is now available on PyPi.
 ```bash
 pip install mxbox
 ```
